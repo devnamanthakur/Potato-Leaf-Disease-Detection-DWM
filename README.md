@@ -80,11 +80,10 @@ Then open the local URL shown in the terminal and upload a papaya image.
 
 Metrics are reported per segmentation-classifier combination (accuracy, precision, recall, F1-score, confusion matrix), evaluated on a properly held-out test set. Fuzzy C-Means + Random Forest was selected as the deployed pipeline based on this comparison.
 
-*(Insert final results table/comparison chart here once all 8 notebooks are re-validated post leakage fix and fruit-cropping update.)*
 
 ## Known limitations and future work
 
-- The current pipeline uses classical, hand-crafted features (segmentation + flattened pixel intensities) rather than learned representations. A CNN-based approach (e.g. transfer learning with MobileNet or EfficientNet) is a natural next step, particularly since color information is discarded in the current grayscale pipeline and may carry disease-relevant signal that pixel intensity alone does not capture.
+- The current pipeline uses classical, hand-crafted features (segmentation + flattened pixel intensities). A CNN-based approach (e.g. transfer learning with MobileNet or EfficientNet) is a natural next step, particularly since color information is discarded in the current grayscale pipeline and may carry disease-relevant signal that pixel intensity alone does not capture.
 - The dataset originates from a limited number of source images under relatively controlled photography conditions (uniform background, studio lighting). Performance on real-world field photographs (variable background, lighting, and camera quality) has not yet been validated and is expected to be lower.
 - Multi-class classification (identifying specific diseases rather than a binary Healthy/Diseased label) is a planned extension.
 - Explainability could be extended further with Grad-CAM or similar techniques once a CNN-based model is introduced, complementing the current Random Forest feature-importance analysis.
