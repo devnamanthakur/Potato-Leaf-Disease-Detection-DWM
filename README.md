@@ -11,7 +11,7 @@ The project explores eight different image segmentation techniques paired with s
 ## Dataset
 
 - 1,000 original images (500 Healthy, 500 Diseased)
-- Augmented via flips (horizontal, vertical, both) and rotations (90°, 180°, 270°) — 7 versions per original image
+- Augmented via flips (horizontal, vertical, both) and rotations (90°, 180°, 270°) - 7 versions per original image
 - **Train/test split is performed on original images before augmentation**, and each original's augmented versions are kept together on one side of the split. This prevents data leakage that would otherwise occur if augmented copies of the same source image ended up in both the training and test sets.
 
 ## Methodology
