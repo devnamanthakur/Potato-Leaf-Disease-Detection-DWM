@@ -39,7 +39,7 @@ Each segmentation technique is paired with each classifier, and evaluated using 
 
 ### Feature pipeline
 - Images are converted to grayscale, denoised with a Gaussian blur, segmented using the technique under test, resized to 64x64, and flattened into a 1D feature vector.
-- For Fuzzy C-Means, cluster membership values are used as additional engineered features alongside raw pixel intensities, rather than as a substitute for ground-truth labels — this keeps the classifier's target aligned with the actual Healthy/Diseased label rather than the clustering's own unsupervised output.
+- For Fuzzy C-Means, cluster membership values are used as additional engineered features alongside raw pixel intensities, rather than as a substitute for ground-truth labels, this keeps the classifier's target aligned with the actual Healthy/Diseased label rather than the clustering's own unsupervised output.
 - All features are scaled with `MinMaxScaler`, fit on the training set only and applied to the test set, to keep distance-based methods (Fuzzy C-Means, KNN, Logistic Regression) well-behaved.
 
 ### Fruit-region cropping
@@ -60,7 +60,6 @@ This is saved as a single `.pkl` file for deployment, so no separate scaler/mode
 The trained pipeline is deployed as an interactive Streamlit web application. Users can upload a papaya image and receive:
 - A Healthy/Diseased prediction with confidence score
 - Per-class probability breakdown
-- Visualization of the detected fruit crop, the preprocessed grayscale input, and a Random Forest pixel-importance heatmap, for transparency into what the model is basing its prediction on
 
 ## Project structure
 
