@@ -87,7 +87,3 @@ Metrics are reported per segmentation-classifier combination (accuracy, precisio
 - The dataset originates from a limited number of source images under relatively controlled photography conditions (uniform background, studio lighting). Performance on real-world field photographs (variable background, lighting, and camera quality) has not yet been validated and is expected to be lower.
 - Multi-class classification (identifying specific diseases rather than a binary Healthy/Diseased label) is a planned extension.
 - Explainability could be extended further with Grad-CAM or similar techniques once a CNN-based model is introduced, complementing the current Random Forest feature-importance analysis.
-
-## Acknowledgments
-
-Built as part of coursework/portfolio development in applied machine learning and computer vision.
