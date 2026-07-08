@@ -2,92 +2,43 @@ import streamlit as st
 from PIL import Image
 import cv2
 import numpy as np
-from skimage.transform import resize
-import joblib
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.preprocessing import MinMaxScaler
-import skfuzzy as fuzz
+import tensorflow as tf
+from tensorflow.keras.models import load_model
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
-
-class FuzzyCMeansFeaturizer(BaseEstimator, TransformerMixin):
-    def __init__(self, n_clusters=2, m=2.0, maxiter=100, error=0.005):
-        self.n_clusters = n_clusters
-        self.m = m
-        self.maxiter = maxiter
-        self.error = error
-
-    def fit(self, X, y=None):
-        self.scaler_ = MinMaxScaler()
-        X_scaled = self.scaler_.fit_transform(X)
-        self.cntr_, _, _, _, _, _, _ = fuzz.cluster.cmeans(
-            X_scaled.T, self.n_clusters, self.m,
-            maxiter=self.maxiter, error=self.error
-        )
-        return self
-
-    def transform(self, X):
-        X_scaled = self.scaler_.transform(X)
-        u, _, _, _, _, _ = fuzz.cluster.cmeans_predict(
-            X_scaled.T, self.cntr_, self.m,
-            maxiter=self.maxiter, error=self.error
-        )
-        return u.T
-
-class PassthroughTransformer(BaseEstimator, TransformerMixin):
-    def fit(self, X, y=None):
-        return self
-    def transform(self, X):
-        return X
-
-# config
+# Config
 CATEGORIES = ['Diseased', 'Healthy']
+IMG_SIZE = (224, 224)
 
 st.set_page_config(page_title="Papaya Disease Detector", page_icon="🍈")
 
-# Load model 
+# Load DL model
 @st.cache_resource
-def load_model():
-    return joblib.load('model.pkl')
+def load_dl_model():
+    return load_model('papaya_mobilenet_finetuned.keras')
 
-pipeline = load_model()
+model = load_dl_model()
 
-# Preprocessing
+# Preprocessing for MobileNet
 def preprocess_image(img_bgr):
-    
-    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+    # Convert BGR to RGB
+    img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
 
-    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Resize to 224x224 as required by MobileNetV2
+    img_resized = cv2.resize(img_rgb, IMG_SIZE)
 
-    fruit_crop = gray  
+    # Apply MobileNetV2 preprocessing (scales pixels to [-1, 1])
+    img_array = np.array(img_resized, dtype=np.float32)
+    img_preprocessed = preprocess_input(img_array)
 
+    # Add batch dimension
+    img_batch = np.expand_dims(img_preprocessed, axis=0)
 
-    if contours:
-        largest = max(contours, key=cv2.contourArea)
-        x, y, w, h = cv2.boundingRect(largest)
-
-        # Guard: only use the crop if its a sensible size
-        min_size = 20 
-        if w >= min_size and h >= min_size:
-            candidate_crop = gray[y:y+h, x:x+w]
-            if candidate_crop.size > 0:
-                fruit_crop = candidate_crop
-
-    blurred = cv2.GaussianBlur(fruit_crop, (7, 7), 0)
-    resized = resize(blurred, (64, 64))
-
-    # Guard: catch any NaN/inf before it reaches the model
-    if np.isnan(resized).any() or np.isinf(resized).any():
-        st.error("Preprocessing produced invalid values (NaN/Inf) — check the uploaded image or fruit detection.")
-        st.stop()
-
-    feat_raw = resized.flatten().reshape(1, -1)
-
-    return feat_raw, fruit_crop, resized
+    return img_batch
 
 # UI
-st.title(" Papaya Fruit Disease Detector")
-st.write("Upload a photo of a papaya fruit and this app will predict whether it's **Healthy** or **Diseased** using Fuzzy C-Means segmentation + Random Forest.")
+st.title("🍈 Papaya Fruit Disease Detector")
+st.write("Upload a photo of a papaya fruit and this app will predict whether it's **Healthy** or **Diseased** using a fine-tuned **MobileNetV2** deep learning model.")
 
 uploaded_file = st.file_uploader("Choose an image", type=["jpg", "jpeg", "png"])
 
@@ -95,16 +46,25 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Uploaded Image", use_container_width=True)
 
-    with st.spinner("Analyzing..."):
+    with st.spinner("Analyzing with MobileNetV2..."):
         img_bgr = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-        feat_raw, fruit_crop, resized = preprocess_image(img_bgr)
+        img_batch = preprocess_image(img_bgr)
 
-        pred_idx = pipeline.predict(feat_raw)[0]
-        probs = pipeline.predict_proba(feat_raw)[0]
+        # Model outputs a single sigmoid probability (0 = Diseased, 1 = Healthy)
+        pred_prob = model.predict(img_batch, verbose=0)[0][0]
+
+        # pred_prob is P(Healthy); P(Diseased) = 1 - pred_prob
+        probs = [1 - pred_prob, pred_prob]  # [Diseased, Healthy]
+        pred_idx = int(pred_prob > 0.5)     # 0 = Diseased, 1 = Healthy
         predicted_class = CATEGORIES[pred_idx]
         confidence = probs[pred_idx] * 100
 
-    st.subheader(f"Prediction: {predicted_class}")
+    # Result display
+    if predicted_class == "Diseased":
+        st.error(f" Prediction: **{predicted_class}**")
+    else:
+        st.success(f"Prediction: **{predicted_class}**")
+
     st.write(f"Confidence: **{confidence:.2f}%**")
 
     st.write("Class probabilities:")
@@ -112,5 +72,4 @@ if uploaded_file is not None:
         st.write(f"- {cat}: {probs[idx]*100:.2f}%")
 
 st.markdown("---")
-st.caption("Papaya Disease Detection — Fuzzy C-Means segmentation + Random Forest classifier")
-
+st.caption("Papaya Disease Detection - Fine-tuned MobileNet Deep Learning Model")
