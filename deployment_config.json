@@ -1,0 +1,13 @@
+{
+  "target_size": [
+    300,
+    300
+  ],
+  "preprocess": "efficientnet",
+  "model_name": "EfficientNetB3_FineTuned",
+  "class_names": [
+    "Early_blight",
+    "Healthy",
+    "Late_blight"
+  ]
+}
