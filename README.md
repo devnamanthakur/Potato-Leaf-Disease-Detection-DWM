@@ -202,7 +202,38 @@ The app supports `efficientnet`, `mobilenet_v2`, and `rescale` preprocessing, so
 
 The app shows the uploaded image, the predicted class, the confidence percentage, and a probability bar for each class.
 
-> Note: the current Streamlit UI is the initial frontend. A redesigned frontend is in development.
+### React Frontend + FastAPI (recommended demo UI)
+
+For a fuller demo, the repository includes a Vite + React + Tailwind single-page app (`frontend/`) backed by a FastAPI service (`backend/main.py`). The API loads the same `potato_disease_final_model.keras` and `deployment_config.json`, and adds:
+
+- drag-and-drop upload with inline validation
+- predicted class, confidence, and per-class probability bars
+- an interactive **Grad-CAM comparison slider** (original vs. heatmap overlay)
+- one-click sample images from `External_Test_Data/`
+- a model comparison section covering the four architectures and the leak-free design choices
+
+One-time setup (TensorFlow 2.21 requires Python 3.10–3.13; it has no wheels for Python 3.14):
+
+```bash
+python3.13 -m venv backend/.venv
+backend/.venv/bin/pip install -r backend/requirements.txt
+npm --prefix frontend install
+```
+
+Run both servers with one command:
+
+```bash
+./start-demo.sh
+```
+
+or manually in two terminals:
+
+```bash
+cd backend && .venv/bin/uvicorn main:app --port 8000
+npm --prefix frontend run dev
+```
+
+Then open `http://localhost:5173`. The Streamlit app (`app.py`) remains available as a minimal single-file alternative.
 
 ## Project Structure
 
@@ -211,6 +242,13 @@ The app shows the uploaded image, the predicted class, the confidence percentage
 ├── 01_data_augmentation.ipynb          # Leak-free split + augmentation (run first)
 ├── 02_potato_disease_detection.ipynb   # Training, evaluation, Grad-CAM, export
 ├── app.py                              # Streamlit inference app
+├── backend/                            # FastAPI inference + Grad-CAM API
+│   ├── main.py                         #   /api/predict, /api/samples, /api/config
+│   └── requirements.txt                #   backend deps (installed in backend/.venv)
+├── frontend/                           # Vite + React + Tailwind demo UI
+│   ├── src/                            #   components, API client, styles
+│   └── package.json
+├── start-demo.sh                       # Launches backend + frontend together
 ├── deployment_config.json              # Model/image/preprocessing config for the app
 ├── requirements.txt                    # Python dependencies
 ├── potato_disease_final_model.keras    # Deployed model (copy of fine-tuned EfficientNetB3, ~82 MB)
@@ -249,6 +287,8 @@ Important gotchas:
 | Deep learning | TensorFlow / Keras 2.21 |
 | Transfer learning | EfficientNetB3, MobileNetV2 (ImageNet weights) |
 | Web app | Streamlit 1.58 |
+| Demo frontend | React 19, Vite 8, Tailwind CSS 4 |
+| Inference API | FastAPI + Uvicorn |
 | Image processing | OpenCV, Pillow |
 | Data & metrics | NumPy, Pandas (3.0), scikit-learn (1.9) |
 | Visualization | Matplotlib (3.11), Seaborn |
