@@ -1,0 +1,6 @@
+tensorflow==2.21.0
+fastapi
+uvicorn[standard]
+python-multipart
+pillow==12.3.0
+opencv-python==5.0.0.93
