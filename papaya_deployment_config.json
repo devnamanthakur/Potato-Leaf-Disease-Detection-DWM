@@ -1,0 +1,13 @@
+{
+  "target_size": [
+    224,
+    224
+  ],
+  "preprocess": "mobilenet_v2",
+  "model_name": "MobileNetV2_FineTuned",
+  "class_names": [
+    "Diseased",
+    "Healthy"
+  ],
+  "output": "sigmoid"
+}
