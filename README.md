@@ -204,36 +204,26 @@ The app shows the uploaded image, the predicted class, the confidence percentage
 
 ### React Frontend + FastAPI (recommended demo UI)
 
-For a fuller demo, the repository includes a Vite + React + Tailwind single-page app (`frontend/`) backed by a FastAPI service (`backend/main.py`). The API loads the same `potato_disease_final_model.keras` and `deployment_config.json`, and adds:
+For a fuller demo, the repository includes a Vite + React + Tailwind single-page app (`frontend/`) backed by a FastAPI service (`backend/main.py`). A header switcher serves **both** projects from one UI:
+
+- **Potato** — `potato_disease_final_model.keras` + `deployment_config.json` (EfficientNetB3, 300×300)
+- **Papaya** — `papaya_mobilenet_finetuned.keras` + `papaya_deployment_config.json` (MobileNetV2, 224×224, binary sigmoid → Healthy / Diseased)
+
+Both models share the same response shape and add:
 
 - drag-and-drop upload with inline validation
 - predicted class, confidence, and per-class probability bars
 - an interactive **Grad-CAM comparison slider** (original vs. heatmap overlay)
-- one-click sample images from `External_Test_Data/`
-- a model comparison section covering the four architectures and the leak-free design choices
+- one-click sample images from `External_Test_Data/` (potato)
+- a model comparison section covering the four potato architectures and the leak-free design choices
 
-One-time setup (TensorFlow 2.21 requires Python 3.10–3.13; it has no wheels for Python 3.14):
-
-```bash
-python3.13 -m venv backend/.venv
-backend/.venv/bin/pip install -r backend/requirements.txt
-npm --prefix frontend install
-```
-
-Run both servers with one command:
+`start-demo.sh` provisions everything on first run (creates `backend/.venv` with Python 3.13/3.12/3.11, installs backend + frontend dependencies), so a single command is all you need:
 
 ```bash
 ./start-demo.sh
 ```
 
-or manually in two terminals:
-
-```bash
-cd backend && .venv/bin/uvicorn main:app --port 8000
-npm --prefix frontend run dev
-```
-
-Then open `http://localhost:5173`. The Streamlit app (`app.py`) remains available as a minimal single-file alternative.
+Pass `--reinstall` to rebuild the venv and dependencies, or `--no-install` to fail fast instead of installing. Then open `http://localhost:5173`. The Streamlit app (`app.py`) remains available as a minimal single-file alternative.
 
 ## Project Structure
 

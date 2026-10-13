@@ -1,6 +1,11 @@
-# Potato Leaf Disease Detector — Frontend
+# Potato & Papaya Disease Detector — Frontend
 
-Vite + React + Tailwind single-page app for the Potato Leaf Disease Detection project. Upload a leaf image (or pick a sample from `External_Test_Data/`) and the FastAPI backend in `../backend` returns the predicted class, confidence, per-class probabilities, and a Grad-CAM explanation.
+Vite + React + Tailwind single-page app that fronts two models in one UI:
+
+- **Potato** — fine-tuned EfficientNetB3 (Early Blight / Healthy / Late Blight)
+- **Papaya** — fine-tuned MobileNetV2 (Healthy / Diseased)
+
+Switch between the two with the segmented control in the header. Upload an image (or, for potato, pick a sample from `External_Test_Data/`) and the FastAPI backend in `../backend` returns the predicted class, confidence, per-class probabilities, and a Grad-CAM explanation.
 
 ## Run
 
@@ -18,6 +23,12 @@ npm run dev
 ```
 
 Open http://localhost:5173. The API base URL defaults to `http://localhost:8000` and can be overridden with `VITE_API_URL`.
+
+## Project layout
+
+- `src/constants.js` — the `PROJECTS` registry (per-project class metadata, copy, stats)
+- `src/components/ProjectSwitch.jsx` — Potato / Papaya switcher
+- `src/api.js` — project-aware API client (`/api` vs `/api/papaya`)
 
 ## Scripts
 
