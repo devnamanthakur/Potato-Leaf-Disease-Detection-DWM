@@ -1,10 +1,9 @@
 import { AlertTriangle, Leaf, Loader2, RefreshCw } from 'lucide-react'
-import { CLASS_META } from '../constants'
 import { toDataUrl } from '../api'
 import ProbabilityBars from './ProbabilityBars'
 import GradCamSlider from './GradCamSlider'
 
-export default function ResultCard({ status, result, error, previewUrl, onReset }) {
+export default function ResultCard({ status, result, error, previewUrl, onReset, project }) {
   if (status === 'idle') {
     return (
       <div className="flex h-full min-h-80 flex-col items-center justify-center rounded-2xl border border-dashed border-stone-300 bg-white/60 p-10 text-center">
@@ -12,10 +11,7 @@ export default function ResultCard({ status, result, error, previewUrl, onReset 
           <Leaf size={22} />
         </span>
         <p className="mt-4 font-semibold text-stone-700">No image analyzed yet</p>
-        <p className="mt-1 max-w-xs text-sm text-stone-500">
-          Upload a leaf photo or pick one of the samples to see the prediction, confidence
-          scores, and the Grad-CAM explanation.
-        </p>
+        <p className="mt-1 max-w-xs text-sm text-stone-500">{project.idleHint}</p>
       </div>
     )
   }
@@ -27,19 +23,16 @@ export default function ResultCard({ status, result, error, previewUrl, onReset 
           {previewUrl && (
             <img
               src={previewUrl}
-              alt="Uploaded leaf"
+              alt="Uploaded image"
               className="size-20 rounded-xl object-cover"
             />
           )}
           <div>
             <p className="flex items-center gap-2 font-semibold text-stone-800">
               <Loader2 className="animate-spin text-emerald-600" size={18} />
-              Analyzing leaf
+              {project.analyzingTitle}
             </p>
-            <p className="mt-1 text-sm text-stone-500">
-              Running EfficientNetB3 and computing Grad-CAM — this can take a few seconds
-              on CPU.
-            </p>
+            <p className="mt-1 text-sm text-stone-500">{project.analyzingText}</p>
           </div>
         </div>
         <div className="mt-6 space-y-3">
@@ -75,7 +68,8 @@ export default function ResultCard({ status, result, error, previewUrl, onReset 
     )
   }
 
-  const meta = CLASS_META[result.predicted_class] || {
+  const classMeta = project.classMeta
+  const meta = classMeta[result.predicted_class] || {
     label: result.predicted_class,
     pathogen: '',
     badge: 'bg-stone-100 text-stone-700 ring-stone-200',
@@ -102,14 +96,13 @@ export default function ResultCard({ status, result, error, previewUrl, onReset 
         </div>
         {meta.description && (
           <p className="mt-3 text-sm leading-relaxed text-stone-600">
-            {meta.description}{' '}
-            <span className="text-stone-400">{meta.pathogen}</span>
+            {meta.description} <span className="text-stone-400">{meta.pathogen}</span>
           </p>
         )}
       </div>
 
       <div className="space-y-6 p-6">
-        <ProbabilityBars probabilities={result.probabilities} />
+        <ProbabilityBars probabilities={result.probabilities} classMeta={classMeta} />
         <GradCamSlider
           original={toDataUrl(result.image)}
           overlay={toDataUrl(result.gradcam.overlay)}

@@ -4,7 +4,7 @@ import { UploadCloud } from 'lucide-react'
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png']
 const MAX_SIZE_MB = 10
 
-export default function UploadZone({ onFile, disabled, backendOnline }) {
+export default function UploadZone({ onFile, disabled, backendOnline, project }) {
   const inputRef = useRef(null)
   const [dragActive, setDragActive] = useState(false)
   const [localError, setLocalError] = useState('')
@@ -35,7 +35,7 @@ export default function UploadZone({ onFile, disabled, backendOnline }) {
       <div
         role="button"
         tabIndex={0}
-        aria-label="Upload a potato leaf image"
+        aria-label={project.uploadAria}
         onClick={() => {
           if (!disabled && inputRef.current) inputRef.current.click()
         }}
@@ -60,7 +60,7 @@ export default function UploadZone({ onFile, disabled, backendOnline }) {
         <span className="grid size-12 place-items-center rounded-full bg-emerald-100 text-emerald-700">
           <UploadCloud size={22} />
         </span>
-        <p className="mt-4 font-semibold text-stone-800">Drop a potato leaf image here</p>
+        <p className="mt-4 font-semibold text-stone-800">{project.uploadTitle}</p>
         <p className="mt-1 text-sm text-stone-500">
           or click to browse — JPG or PNG, up to {MAX_SIZE_MB} MB
         </p>

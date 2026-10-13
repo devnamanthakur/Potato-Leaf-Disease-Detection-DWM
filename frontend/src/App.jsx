@@ -7,9 +7,17 @@ import SampleGallery from './components/SampleGallery'
 import ResultCard from './components/ResultCard'
 import AboutSection from './components/AboutSection'
 import Footer from './components/Footer'
-import { fetchConfig, fetchSamples, fetchSampleFile, predictImage } from './api'
+import ProjectSwitch from './components/ProjectSwitch'
+import { PROJECTS } from './constants'
+import {
+  fetchProjectConfig,
+  fetchProjectSamples,
+  fetchProjectSampleFile,
+  predictProjectImage,
+} from './api'
 
 export default function App() {
+  const [projectId, setProjectId] = useState('potato')
   const [config, setConfig] = useState(null)
   const [samples, setSamples] = useState([])
   const [backendOnline, setBackendOnline] = useState(null)
@@ -21,26 +29,45 @@ export default function App() {
   const requestRef = useRef(0)
   const resultRef = useRef(null)
 
+  const project = PROJECTS[projectId]
+
+  function selectProject(id) {
+    if (id === projectId) return
+    requestRef.current += 1
+    setProjectId(id)
+    setConfig(null)
+    setSamples([])
+    setBackendOnline(null)
+    setStatus('idle')
+    setResult(null)
+    setError('')
+    setPendingSample('')
+    setPreviewUrl('')
+  }
+
   useEffect(() => {
     let cancelled = false
-    Promise.allSettled([fetchConfig(), fetchSamples()]).then(
-      ([configResult, samplesResult]) => {
-        if (cancelled) return
-        if (configResult.status === 'fulfilled') {
-          setConfig(configResult.value)
-          setBackendOnline(true)
-        } else {
-          setBackendOnline(false)
-        }
-        if (samplesResult.status === 'fulfilled') {
-          setSamples(samplesResult.value)
-        }
-      },
-    )
+
+    const requests = [fetchProjectConfig(projectId)]
+    if (project.hasSamples) requests.push(fetchProjectSamples(projectId))
+
+    Promise.allSettled(requests).then(([configResult, samplesResult]) => {
+      if (cancelled) return
+      if (configResult.status === 'fulfilled') {
+        setConfig(configResult.value)
+        setBackendOnline(true)
+      } else {
+        setBackendOnline(false)
+      }
+      if (samplesResult && samplesResult.status === 'fulfilled') {
+        setSamples(samplesResult.value)
+      }
+    })
+
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [projectId, project.hasSamples])
 
   useEffect(
     () => () => {
@@ -59,7 +86,7 @@ export default function App() {
     setPreviewUrl(URL.createObjectURL(file))
     resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     try {
-      const data = await predictImage(file)
+      const data = await predictProjectImage(projectId, file)
       if (requestRef.current !== requestId) return
       setResult(data)
       setStatus('done')
@@ -75,7 +102,7 @@ export default function App() {
   async function handleSampleSelect(name) {
     setPendingSample(name)
     try {
-      const file = await fetchSampleFile(name)
+      const file = await fetchProjectSampleFile(projectId, name)
       await analyze(file, name)
     } catch (err) {
       setError(err.message)
@@ -95,7 +122,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen">
-      <Header modelName={config?.model_name} />
+      <Header project={project} modelName={config?.model_name}>
+        <ProjectSwitch
+          value={projectId}
+          onChange={selectProject}
+          disabled={status === 'loading'}
+        />
+      </Header>
 
       {backendOnline === false && (
         <div className="border-b border-amber-200 bg-amber-50">
@@ -108,7 +141,7 @@ export default function App() {
               </code>
               . Start it with{' '}
               <code className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-xs">
-                cd backend &amp;&amp; .venv/bin/uvicorn main:app --port 8000
+                ./start-demo.sh
               </code>
             </p>
           </div>
@@ -116,7 +149,7 @@ export default function App() {
       )}
 
       <main>
-        <Hero />
+        <Hero project={project} />
 
         <section id="try" className="mx-auto max-w-6xl px-4 pb-20">
           <div className="grid items-start gap-8 lg:grid-cols-2">
@@ -125,13 +158,17 @@ export default function App() {
                 onFile={analyze}
                 disabled={status === 'loading'}
                 backendOnline={backendOnline}
+                project={project}
               />
-              <SampleGallery
-                samples={samples}
-                onSelect={handleSampleSelect}
-                disabled={status === 'loading'}
-                pendingSample={pendingSample}
-              />
+              {project.hasSamples && (
+                <SampleGallery
+                  samples={samples}
+                  onSelect={handleSampleSelect}
+                  disabled={status === 'loading'}
+                  pendingSample={pendingSample}
+                  project={project}
+                />
+              )}
             </div>
             <div ref={resultRef} className="lg:sticky lg:top-24">
               <ResultCard
@@ -140,15 +177,16 @@ export default function App() {
                 error={error}
                 previewUrl={previewUrl}
                 onReset={handleReset}
+                project={project}
               />
             </div>
           </div>
         </section>
 
-        <AboutSection />
+        <AboutSection project={project} />
       </main>
 
-      <Footer />
+      <Footer project={project} />
     </div>
   )
 }

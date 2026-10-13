@@ -1,6 +1,4 @@
-import { CLASS_META } from '../constants'
-
-export default function ProbabilityBars({ probabilities }) {
+export default function ProbabilityBars({ probabilities, classMeta = {} }) {
   const sorted = [...probabilities].sort((a, b) => b.probability - a.probability)
 
   return (
@@ -8,7 +6,7 @@ export default function ProbabilityBars({ probabilities }) {
       <p className="mb-3 text-sm font-semibold text-stone-700">Class probabilities</p>
       <div className="space-y-3">
         {sorted.map(({ label, probability }) => {
-          const meta = CLASS_META[label] || {}
+          const meta = classMeta[label] || {}
           const percent = probability * 100
           return (
             <div key={label}>
