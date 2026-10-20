@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import Header from './components/Header'
-import Hero from './components/Hero'
-import UploadZone from './components/UploadZone'
-import SampleGallery from './components/SampleGallery'
-import ResultCard from './components/ResultCard'
-import AboutSection from './components/AboutSection'
 import Footer from './components/Footer'
 import ProjectSwitch from './components/ProjectSwitch'
+import HomePage from './pages/HomePage'
+import DetectPage from './pages/DetectPage'
+import AboutPage from './pages/AboutPage'
+import NotFoundPage from './pages/NotFoundPage'
 import { PROJECTS } from './constants'
+import { useLocation } from './router/router'
 import {
   fetchProjectConfig,
   fetchProjectSamples,
@@ -28,6 +28,7 @@ export default function App() {
   const [pendingSample, setPendingSample] = useState('')
   const requestRef = useRef(0)
   const resultRef = useRef(null)
+  const { path } = useLocation()
 
   const project = PROJECTS[projectId]
 
@@ -68,6 +69,16 @@ export default function App() {
       cancelled = true
     }
   }, [projectId, project.hasSamples])
+
+  useEffect(() => {
+    const titles = {
+      '/': project.title,
+      '/detect': `Detector · ${project.title}`,
+      '/about': `How it works · ${project.title}`,
+    }
+    const title = titles[path] || 'Page not found'
+    document.title = `${title} — Plant & Fruit Disease Detection`
+  }, [path, project.title])
 
   useEffect(
     () => () => {
@@ -120,8 +131,39 @@ export default function App() {
     setPreviewUrl('')
   }
 
+  function renderPage() {
+    if (path === '/') {
+      return <HomePage project={project} />
+    }
+
+    if (path === '/detect') {
+      return (
+        <DetectPage
+          project={project}
+          samples={samples}
+          backendOnline={backendOnline}
+          status={status}
+          result={result}
+          error={error}
+          previewUrl={previewUrl}
+          pendingSample={pendingSample}
+          onAnalyze={analyze}
+          onSampleSelect={handleSampleSelect}
+          onReset={handleReset}
+          resultRef={resultRef}
+        />
+      )
+    }
+
+    if (path === '/about') {
+      return <AboutPage project={project} modelName={config?.model_name} />
+    }
+
+    return <NotFoundPage />
+  }
+
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <Header project={project} modelName={config?.model_name}>
         <ProjectSwitch
           value={projectId}
@@ -148,42 +190,8 @@ export default function App() {
         </div>
       )}
 
-      <main>
-        <Hero project={project} />
-
-        <section id="try" className="mx-auto max-w-6xl px-4 pb-20">
-          <div className="grid items-start gap-8 lg:grid-cols-2">
-            <div className="space-y-6">
-              <UploadZone
-                onFile={analyze}
-                disabled={status === 'loading'}
-                backendOnline={backendOnline}
-                project={project}
-              />
-              {project.hasSamples && (
-                <SampleGallery
-                  samples={samples}
-                  onSelect={handleSampleSelect}
-                  disabled={status === 'loading'}
-                  pendingSample={pendingSample}
-                  project={project}
-                />
-              )}
-            </div>
-            <div ref={resultRef} className="lg:sticky lg:top-24">
-              <ResultCard
-                status={status}
-                result={result}
-                error={error}
-                previewUrl={previewUrl}
-                onReset={handleReset}
-                project={project}
-              />
-            </div>
-          </div>
-        </section>
-
-        <AboutSection project={project} />
+      <main key={path} className="flex-1 animate-fade-up">
+        {renderPage()}
       </main>
 
       <Footer project={project} />

@@ -16,22 +16,29 @@ const ICONS = {
   bars: BarChart3,
 }
 
-export default function AboutSection({ project }) {
+export default function AboutSection({ project, showIntro = true }) {
   const about = project.about
   const showModelTable = about.modelResults.length > 0
 
   return (
-    <section id="about" className="border-t border-stone-200 bg-white">
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
-          About the project
-        </p>
-        <h2 className="mt-2 text-3xl font-bold tracking-tight text-stone-900">
-          How it works
-        </h2>
-        <p className="mt-3 max-w-3xl text-stone-600">{about.intro}</p>
+    <section
+      id="about"
+      className={`bg-white ${showIntro ? 'border-t border-stone-200' : ''}`}
+    >
+      <div className={`mx-auto max-w-6xl px-4 ${showIntro ? 'py-16' : 'pb-16 pt-12'}`}>
+        {showIntro && (
+          <>
+            <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
+              About the project
+            </p>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-stone-900">
+              How it works
+            </h2>
+            <p className="mt-3 max-w-3xl text-stone-600">{about.intro}</p>
+          </>
+        )}
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className={`${showIntro ? 'mt-8 ' : ''}grid gap-3 sm:grid-cols-3 lg:grid-cols-5`}>
           {about.pipeline.map(({ icon, title, text }) => {
             const Icon = ICONS[icon] || BarChart3
             return (

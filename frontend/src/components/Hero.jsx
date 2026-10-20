@@ -1,4 +1,5 @@
-import { ArrowDown, BarChart3, FlaskConical, Leaf, Target } from 'lucide-react'
+import { ArrowRight, BarChart3, FlaskConical, Leaf, Target } from 'lucide-react'
+import { Link } from '../router/Link.jsx'
 
 const ICONS = {
   target: Target,
@@ -30,19 +31,19 @@ export default function Hero({ project }) {
           {project.bodySuffix}
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <a
-            href="#try"
+          <Link
+            to="/detect"
             className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
           >
             Try the demo
-            <ArrowDown size={16} />
-          </a>
-          <a
-            href="#about"
+            <ArrowRight size={16} />
+          </Link>
+          <Link
+            to="/about"
             className="inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-6 py-3 text-sm font-semibold text-stone-700 transition hover:border-emerald-400 hover:text-emerald-700"
           >
             How it works
-          </a>
+          </Link>
         </div>
         <div className="mx-auto mt-12 grid max-w-3xl gap-3 sm:grid-cols-3">
           {project.stats.map(({ icon, value, label }) => {

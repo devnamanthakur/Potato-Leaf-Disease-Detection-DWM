@@ -204,7 +204,7 @@ The app shows the uploaded image, the predicted class, the confidence percentage
 
 ### React Frontend + FastAPI (recommended demo UI)
 
-For a fuller demo, the repository includes a Vite + React + Tailwind single-page app (`frontend/`) backed by a FastAPI service (`backend/main.py`). A header switcher serves **both** projects from one UI:
+For a fuller demo, the repository includes a Vite + React + Tailwind multi-page app (`frontend/`) backed by a FastAPI service (`backend/main.py`), with separate Home, Detector, and How-it-works routes. A header switcher serves **both** projects from one UI:
 
 - **Potato** — `potato_disease_final_model.keras` + `deployment_config.json` (EfficientNetB3, 300×300)
 - **Papaya** — `papaya_mobilenet_finetuned.keras` + `papaya_deployment_config.json` (MobileNetV2, 224×224, binary sigmoid → Healthy / Diseased)
@@ -216,6 +216,7 @@ Both models share the same response shape and add:
 - an interactive **Grad-CAM comparison slider** (original vs. heatmap overlay)
 - one-click sample images from `External_Test_Data/` (potato)
 - a model comparison section covering the four potato architectures and the leak-free design choices
+- separate Home, Detector, and How-it-works pages with deep-linkable URLs
 
 `start-demo.sh` provisions everything on first run (creates `backend/.venv` with Python 3.13/3.12/3.11, installs backend + frontend dependencies), so a single command is all you need:
 
@@ -235,8 +236,8 @@ Pass `--reinstall` to rebuild the venv and dependencies, or `--no-install` to fa
 ├── backend/                            # FastAPI inference + Grad-CAM API
 │   ├── main.py                         #   /api/predict, /api/samples, /api/config
 │   └── requirements.txt                #   backend deps (installed in backend/.venv)
-├── frontend/                           # Vite + React + Tailwind demo UI
-│   ├── src/                            #   components, API client, styles
+├── frontend/                           # Vite + React + Tailwind multi-page UI
+│   ├── src/                            #   pages, router, components, API client
 │   └── package.json
 ├── start-demo.sh                       # Launches backend + frontend together
 ├── deployment_config.json              # Model/image/preprocessing config for the app
